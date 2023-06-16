@@ -4,13 +4,11 @@ import useDoubleClick from 'use-double-click'
 import styles from './styles.module.css'
 import Bars from '../Bars/Bars.jsx'
 
-const Question = ({ currentTrack, audioRef, handleNext, setDuration, progressBarRef }) => {
-	const [isLine, setIsLine] = useState(false)
-	const [isPlaying, setIsPlaying] = useState(false)
+const Question = ({ currentTrack, audioRef, handleNext, setDuration, isPlaying, setIsPlaying }) => {
 	const questionClickRef = useRef()
 
 	useEffect(() => {
-		if (isPlaying === true) {
+		if (isPlaying === 'q') {
 			audioRef.current.play()
 		} else {
 			audioRef.current.pause()
@@ -18,10 +16,13 @@ const Question = ({ currentTrack, audioRef, handleNext, setDuration, progressBar
 	}, [isPlaying, audioRef])
 
 	const playAudio = async () => {
-		setIsLine(true)
-		setIsPlaying(true)
+		setIsPlaying('q')
 		window.navigator.vibrate(100)
 		audioRef.current.play()
+		audioRef.current.addEventListener('ended', () => {
+			setIsPlaying('')
+		})
+		audioRef.current.removeEventListener('ended', () => {})
 		// const audioInstance = new Audio('/audio/question_1.mp4')
 		// setAudio(audioInstance)
 		// await audioInstance.play()
@@ -32,14 +33,12 @@ const Question = ({ currentTrack, audioRef, handleNext, setDuration, progressBar
 		audioRef.current.pause()
 		audioRef.current.currentTime = 0
 		// await audio.stop()
-		setIsLine(false)
-		setIsPlaying(false)
+		setIsPlaying('')
 	}
 	const pauseAudio = async () => {
 		audioRef.current.pause()
 		// await audio.stop()
-		setIsLine(false)
-		setIsPlaying(false)
+		setIsPlaying('')
 	}
 	const onLoadedMetadata = () => {
 		const seconds = audioRef.current.duration
@@ -51,7 +50,7 @@ const Question = ({ currentTrack, audioRef, handleNext, setDuration, progressBar
 
 		onSingleClick: e => {
 			console.log(e, 'single click')
-			if (isLine) {
+			if (isPlaying == 'q') {
 				pauseAudio()
 			} else {
 				playAudio()
@@ -62,7 +61,7 @@ const Question = ({ currentTrack, audioRef, handleNext, setDuration, progressBar
 
 		onDoubleClick: e => {
 			console.log(e, 'double click')
-			if (isLine) {
+			if (isPlaying == 'q') {
 				stopAudio()
 			} else {
 				playAudio()
@@ -85,9 +84,9 @@ const Question = ({ currentTrack, audioRef, handleNext, setDuration, progressBar
 	})
 
 	return (
-		<div ref={questionClickRef} className={styles.question} style={isLine ? { borderColor: '#07FFFF' } : { borderColor: '#FFFFFF' }}>
+		<div ref={questionClickRef} className={styles.question} style={isPlaying == 'q' ? { borderColor: '#07FFFF' } : { borderColor: '#FFFFFF' }}>
 			<audio src={currentTrack.src} ref={audioRef} onLoadedMetadata={onLoadedMetadata} onEnded={handleNext} />
-			{isLine ? <Bars /> : <h1>ВОПРОС 1 </h1>}
+			{isPlaying == 'q' ? <Bars /> : <h1>ВОПРОС 1 </h1>}
 		</div>
 	)
 }

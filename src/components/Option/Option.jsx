@@ -1,32 +1,55 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import styles from './styles.module.css'
 import { Check, Line } from '../../img/index.js'
 import Bars from '../Bars/Bars.jsx'
 
-const Option = ({ option, voice }) => {
+const Option = ({ option, voice,currentTrack, audioRef, isPlaying, setIsPlaying }) => {
 	const [isCheck, setIsCheck] = useState(false)
-	const [isLine, setIsLine] = useState(false)
+	// const [isLine, setIsLine] = useState(false)
+	const opRef = useRef()
 
 	const playAudio = async () => {
-		setIsLine(true)
+		setIsPlaying(option)
 		window.navigator.vibrate(100)
-		const audio = new Audio(voice)
-		await audio.play()
-		audio.addEventListener('ended', () => setIsLine(false))
+		opRef.current.play()
+		// const audio = new Audio(voice)
+		// await audio.play()
+		// audio.addEventListener('ended', () => {
+		// 	if (isPlaying === option) {
+		// 		setIsPlaying('')
+		// 	}
+		// })
+
+		audioRef.current.pause()
+		audioRef.current.currentTime = 0
 	}
+	useEffect(() => {
+		if (isPlaying !== option) {
+			// setIsPlaying('')
+			opRef.current.pause()
+			opRef.current.currentTime = 0
+		}
+	}, [isPlaying])
 
 	const db = () => {
 		setIsCheck(true)
 	}
 
+	const handleEnd = () => {
+		if (isPlaying === option) {
+			setIsPlaying('')
+		}
+	}
 	return (
 		<div
 			onDoubleClick={db}
 			onClick={isCheck ? undefined : playAudio}
 			className={`${styles.option} ${isCheck && styles.optionCurrent}`}
-			style={isCheck ? { borderColor: '#05CD56' } : isLine ? { borderColor: '#07FFFF' } : { borderColor: '#FFFFFF' }}
+			style={isCheck ? { borderColor: '#05CD56' } : isPlaying === option ? { borderColor: '#07FFFF' } : { borderColor: '#FFFFFF' }}
 		>
-			{isCheck ? <img src={Check} /> : isLine ? <Bars /> : <h3>ВАРИАНТ {option}</h3>}
+			<audio src={currentTrack[option]} ref={opRef} onEnded={handleEnd} />
+
+			{isCheck ? <img src={Check} /> : isPlaying === option ? <Bars /> : <h3>ВАРИАНТ {option}</h3>}
 		</div>
 	)
 }
